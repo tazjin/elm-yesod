@@ -17,6 +17,7 @@
 -}
 module Language.Elm.Yesod (
         elmWidget
+      , YesodElm (..)
       , ElmUrl) where
 
 import Control.Monad (liftM)
@@ -25,20 +26,26 @@ import Text.Julius
 import Yesod.Core (Route (..))
 import Yesod.Handler (getUrlRenderParams, GHandler (..))
 import Yesod.Widget
-import Yesod.Handler (lift)
+import Yesod.Handler (lift, getYesod)
 import Language.Elm
 import Language.Elm.Quasi
 
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
+class YesodElm master where
+    urlElmJs :: a -> Either (Route master) TS.Text
+
 -- |elmWidget returns a Yesod widget from some Elm source code
 --  with URL interpolation.
-elmWidget :: ElmUrl (Route master) -- ^ Elm source code
+elmWidget :: YesodElm master
+          => ElmUrl (Route master) -- ^ Elm source code
           -> GWidget sub master()
 elmWidget source = do
   urlF <- lift getUrlRenderParams
   mkElmWidget source urlF
+  master <- lift getYesod
+  addScriptEither $ urlElmJs master
 
 
 mkElmWidget :: ElmUrl (Route master)   -- ^ Elm source code
