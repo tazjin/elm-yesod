@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes, TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeFamilies #-}
 {- | This module provides a function for compiling Elm source code into a Yesod widget.
      In order to use this with your Yesod app, you need to define a defaultLayout like
      function that embeds the elm-min.js file /in the <head> tag/.
@@ -35,6 +36,10 @@ class YesodElm master where
     -- | The location of the elm-min.js file. This can be either a type-safe
     -- route (@Left@) or a raw string (@Right@).
     urlElmJs :: a -> Either (Route master) TS.Text
+
+instance (YesodElm master, render ~ RenderFn (Route master))
+  => ToWidget sub master (render -> Elm) where
+    toWidget = elmWidget
 
 -- |elmWidget returns a Yesod widget from some Elm source code
 --  with URL interpolation.
