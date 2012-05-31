@@ -7,11 +7,9 @@
 
    > instance Yesod App where
    >    jsLoader _ = BottomOfHeadBlocking -- moves JS to the <head> tag
-   >    defaultLayout widget = do
-   >        pc <- widgetToPageContent $ do
-   >            addScriptRemote $ "http://somecdn.org/link/to/elm-min.js"
-   >            ...
-   >        ...
+
+     You also need to define an instance of 'YesodElm', which will specify
+     where to find the elm-min.js file.
 
      A full example implementation is provided in the examples folder of the Elm github repository.
 -}
@@ -34,6 +32,8 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 
 class YesodElm master where
+    -- | The location of the elm-min.js file. This can be either a type-safe
+    -- route (@Left@) or a raw string (@Right@).
     urlElmJs :: a -> Either (Route master) TS.Text
 
 -- |elmWidget returns a Yesod widget from some Elm source code
