@@ -1,5 +1,5 @@
 Name:                elm-yesod
-Version:             0.1
+Version:             0.1.2
 Synopsis:            The Elm language Yesod compatibility module.
 Description:         This module provides a simple function to embed Elm code
                      as a Yesod widget.
