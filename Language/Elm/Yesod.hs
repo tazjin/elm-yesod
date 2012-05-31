@@ -25,6 +25,7 @@ import Text.Julius
 import Yesod.Core (Route (..))
 import Yesod.Handler (getUrlRenderParams, GHandler (..))
 import Yesod.Widget
+import Yesod.Handler (lift)
 import Language.Elm
 import Language.Elm.Quasi
 
@@ -34,10 +35,10 @@ import qualified Data.Text.Lazy as TL
 -- |elmWidget returns a Yesod widget from some Elm source code
 --  with URL interpolation.
 elmWidget :: ElmUrl (Route master) -- ^ Elm source code
-          -> GHandler sub master (GWidget sub master())
+          -> GWidget sub master()
 elmWidget source = do
-  urlF <- getUrlRenderParams
-  return $ mkElmWidget source urlF
+  urlF <- lift getUrlRenderParams
+  mkElmWidget source urlF
 
 
 mkElmWidget :: ElmUrl (Route master)   -- ^ Elm source code
