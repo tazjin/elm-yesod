@@ -6,17 +6,14 @@
      where to find the elm-min.js file.
 
      For example:
-    @
-     instance YesodElm App where
-       urlElmJs _ = Right $ "http://link.to/elm-min.js"
-    @
+
+   > instance YesodElm App where
+   >   urlElmJs _ = Right $ "http://link.to/elm-min.js"
 
      or
 
-    @
-     instance YesodElm App where
-       urlElmJs _ = Left $ StaticR js_elm_min_js
-    @
+   > instance YesodElm App where
+   >   urlElmJs _ = Left $ StaticR js_elm_min_js
 
      A full example implementation is provided in the examples folder of the Elm github repository
      at <https://github.com/tazjin/Elm/tree/master/Examples/elm-yesod>.
