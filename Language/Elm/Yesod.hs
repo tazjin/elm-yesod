@@ -1,18 +1,25 @@
 {-# LANGUAGE QuasiQuotes, TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses, TypeFamilies #-}
 {- | This module provides a function for compiling Elm source code into a Yesod widget.
-     In order to use this with your Yesod app, you need to define a defaultLayout like
-     function that embeds the elm-min.js file /in the <head> tag/.
 
-     For example, you could modify your Yesod instance as follows:
-
-   > instance Yesod App where
-   >    jsLoader _ = BottomOfHeadBlocking -- moves JS to the <head> tag
-
-     You also need to define an instance of 'YesodElm', which will specify
+     You  need to define an instance of 'YesodElm', which will specify
      where to find the elm-min.js file.
 
-     A full example implementation is provided in the examples folder of the Elm github repository.
+     For example:
+    @
+     instance YesodElm App where
+       urlElmJs _ = Right $ "http://link.to/elm-min.js"
+    @
+
+     or
+
+    @
+     instance YesodElm App where
+       urlElmJs _ = Left $ StaticR js_elm_min_js
+    @
+
+     A full example implementation is provided in the examples folder of the Elm github repository
+     at <https://github.com/tazjin/Elm/tree/master/Examples/elm-yesod>.
 -}
 module Language.Elm.Yesod (
         elmWidget
@@ -22,7 +29,7 @@ module Language.Elm.Yesod (
 import Control.Monad (liftM)
 import Text.Blaze (preEscapedToMarkup)
 import Text.Julius
-import Yesod.Core (Route (..))
+import Yesod.Core (Route (..), Yesod(..), ScriptLoadPosition(..))
 import Yesod.Handler (getUrlRenderParams, GHandler (..))
 import Yesod.Widget
 import Yesod.Handler (lift, getYesod)
@@ -37,30 +44,36 @@ class YesodElm master where
     -- route (@Left@) or a raw string (@Right@).
     urlElmJs :: a -> Either (Route master) TS.Text
 
-instance (YesodElm master, render ~ RenderFn (Route master))
+instance (Yesod master, YesodElm master, render ~ RenderFn (Route master))
   => ToWidget sub master (render -> Elm) where
     toWidget = elmWidget
 
 -- |elmWidget returns a Yesod widget from some Elm source code
 --  with URL interpolation.
-elmWidget :: YesodElm master
+elmWidget :: (Yesod master, YesodElm master)
           => ElmUrl (Route master) -- ^ Elm source code
           -> GWidget sub master()
 elmWidget source = do
   urlF <- lift getUrlRenderParams
-  mkElmWidget source urlF
   master <- lift getYesod
+  mkElmWidget source urlF (jsLoader master)
   addScriptEither $ urlElmJs master
 
 
-mkElmWidget :: ElmUrl (Route master)   -- ^ Elm source code
+mkElmWidget :: Yesod master
+            => ElmUrl (Route master)   -- ^ Elm source code
             -> RenderFn (Route master) -- ^ URL rendering function
+            -> ScriptLoadPosition master
             -> GWidget sub master ()
-mkElmWidget source urlFn =
-  let (html, css, js) = toParts (urlFn, source) in
-  do toWidgetHead css
-     toWidgetHead [julius| #{js} |]
-     toWidgetBody html
+mkElmWidget source urlFn jsl =
+  let (html, css, js) = toParts (urlFn, source)
+      initscript = [julius| Dispatcher.initialize(); |]
+  in do toWidgetHead css
+        toWidget [julius| #{js} |]
+        toWidget html
+        case jsl of
+          BottomOfBody -> toWidget initscript  -- insert as last script
+          otherwise -> toWidgetBody initscript -- insert in body instead of head
 
 
 -- | Return type of template-reading functions.
