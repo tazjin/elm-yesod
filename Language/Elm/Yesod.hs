@@ -27,9 +27,8 @@ import Control.Monad (liftM)
 import Text.Blaze (preEscapedToMarkup)
 import Text.Julius
 import Yesod.Core (Route (..), Yesod(..), ScriptLoadPosition(..))
-import Yesod.Handler (getUrlRenderParams, GHandler (..))
+import Yesod.Handler
 import Yesod.Widget
-import Yesod.Handler (lift, getYesod)
 import Language.Elm
 import Language.Elm.Quasi
 
@@ -71,7 +70,6 @@ mkElmWidget source urlFn jsl =
         case jsl of
           BottomOfBody -> toWidget initscript  -- insert as last script
           otherwise -> toWidgetBody initscript -- insert in body instead of head
-
 
 -- | Return type of template-reading functions.
 type ElmUrl url = (url -> [(TS.Text, TS.Text)] -> TS.Text) -> Elm
