@@ -65,7 +65,7 @@ mkElmWidget source urlFn jsl =
   let (html, css, js) = toParts (urlFn, source)
       initscript = [julius| Dispatcher.initialize(); |]
   in do toWidgetHead css
-        toWidget [julius| #{js} |]
+        toWidget [julius| #{rawJS js} |]
         toWidget html
         case jsl of
           BottomOfBody -> toWidget initscript  -- insert as last script
