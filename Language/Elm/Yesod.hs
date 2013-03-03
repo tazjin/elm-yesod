@@ -65,7 +65,7 @@ mkElmWidget source urlFn jsl =
   let (html, css, js) = toParts (urlFn, source)
       initscript = [julius| Dispatcher.initialize(); |]
   in do toWidgetHead css
-        toWidget [julius| #{rawJS js} |]
+        toWidgetBody [julius| #{rawJS js} |]  -- insert in body so elm can find document.body  (see issue#5)
         toWidget html
         case jsl of
           BottomOfBody -> toWidget initscript  -- insert as last script
